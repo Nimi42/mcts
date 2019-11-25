@@ -3,7 +3,7 @@ from __future__ import division, annotations
 import time
 import math
 import random
-from typing import Dict, Callable, Any, List, Type
+from typing import Dict, Any, List, Type, Generator, Union
 
 from abc import ABC, abstractmethod
 
@@ -11,11 +11,11 @@ from abc import ABC, abstractmethod
 class State(ABC):
 
     @abstractmethod
-    def get_random_action(self) -> List[Any]:
+    def get_unexplored_actions(self) -> Generator[Any, None, None]:
         pass
 
     @abstractmethod
-    def get_possible_actions(self) -> List[Any]:
+    def get_best_action(self) -> List[Any]:
         pass
 
     @abstractmethod
@@ -28,7 +28,6 @@ class State(ABC):
 
     @abstractmethod
     def get_reward(self) -> Any:
-        # only needed for terminal states
         pass
 
 
@@ -40,7 +39,7 @@ class Node:
         self.parent: Node = parent
         self.num_visits: int = 0
         self.total_reward: int = 0
-        self.children: Dict[Node] = {}
+        self.children: Dict[Any, Node] = {}
 
 
 class MCTS:
@@ -64,8 +63,7 @@ class MCTS:
             self.search_limit = iteration_limit
             self.limit_type = 'iterations'
 
-        self.explorationConstant = exploration_constant
-
+        self.exploration_constant = exploration_constant
 
     def search(self, initial_state: Type[State]) -> Any:
         self.root: Node = Node(initial_state, None)
@@ -89,16 +87,15 @@ class MCTS:
     def _select_node(self, node: Node) -> Node:
         while not node.is_terminal:
             if node.is_fully_expanded:
-                node = self._get_best_child(node, self.explorationConstant)
+                node = self._get_best_child(node, self.exploration_constant)
             else:
                 result = self._expand(node)
                 if result is not None:
                     return result
         return node
 
-    def _expand(self, node: Node) -> Node:
-        actions = node.state.unexplored
-        for action in actions:
+    def _expand(self, node: Node) -> Union[Node, None]:
+        for action in node.state.get_unexplored_actions():
             if action not in node.children:
                 new_node = Node(node.state.take_action(action), node)
                 node.children[action] = new_node
@@ -109,7 +106,7 @@ class MCTS:
     def _rollout(self, state: Type[State]) -> Any:
         while not state.is_terminal():
             try:
-                action = state.get_random_action()
+                action = state.get_best_action()
             except IndexError:
                 raise Exception("Non-terminal state has no possible actions: " + str(state))
             state = state.take_action(action)

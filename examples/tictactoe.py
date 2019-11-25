@@ -3,7 +3,7 @@ from __future__ import division, annotations
 import operator
 from copy import deepcopy
 from functools import reduce
-from typing import List
+from typing import List, Generator
 import numpy as np
 from mcts.legacy import MCTS, State
 
@@ -36,32 +36,34 @@ class TicTacToe(State):
         self.board = board
         self.board_turn = turn
         self.current_player = current_player
-        self.unexplored = self.get_possible_actions()
 
-    def get_random_action(self):
+        def action_gen() -> Generator[Action, None, None]:
+            random = np.random.choice(9, 9, replace=False)
+            actions = []
+            for idx in random:
+                i, j = np.unravel_index(idx, (3, 3))
+                if self.board[i][j] == 0:
+                    action = Action(player=self.current_player, x=i, y=j)
+                    actions.append(action)
+                    new_state = self.take_action(action)
+                    if (new_state.get_reward() < 0 and self.current_player != self.board_turn or
+                            new_state.get_reward() > 1 and self.current_player == self.board_turn):
+                        yield action
+                        return
+            for action in actions:
+                yield action
+
+        self._unexplored = action_gen()
+
+    def get_unexplored_actions(self) -> Generator[Action, None, None]:
+        return self._unexplored
+
+    def get_best_action(self):
         random = np.random.choice(9, 9, replace=False)
         for idx in random:
             i, j = np.unravel_index(idx, (3, 3))
             if self.board[i][j] == 0:
                 return Action(player=self.current_player, x=i, y=j)
-
-        raise Exception("Should never reach here")
-
-    def get_possible_actions(self) -> List[Action]:
-        random = np.random.choice(9, 9, replace=False)
-        actions = []
-        for idx in random:
-            i, j = np.unravel_index(idx, (3, 3))
-            if self.board[i][j] == 0:
-                action = Action(player=self.current_player, x=i, y=j)
-                actions.append(action)
-                new_state = self.take_action(action)
-                if (new_state.get_reward() < 0 and self.current_player != self.board_turn or
-                        new_state.get_reward() > 1 and self.current_player == self.board_turn):
-                    yield action
-                    return
-        for action in actions:
-            yield action
 
     def take_action(self, action: Action) -> TicTacToe:
         new_board = deepcopy(self.board)
