@@ -111,6 +111,6 @@ if __name__ == '__main__':
                 print(i)
             print('---')
 
-    run_example()
-    # import timeit
-    # print(timeit.timeit('run_example()', setup="from __main__ import run_example", number=5))
+    #run_example()
+    import timeit
+    print(timeit.timeit('run_example()', setup="from __main__ import run_example", number=5))

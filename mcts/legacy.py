@@ -4,6 +4,7 @@ import time
 import math
 import random
 from typing import Dict, Any, List, Type, Generator, Union
+from dataclasses import dataclass, field
 
 from abc import ABC, abstractmethod
 
@@ -31,15 +32,22 @@ class State(ABC):
         pass
 
 
+@dataclass
 class Node:
-    def __init__(self, state: Type[State], parent):
-        self.state: Type[State] = state
-        self.is_terminal: bool = state.is_terminal()
-        self.is_fully_expanded: bool = self.is_terminal
-        self.parent: Node = parent
-        self.num_visits: int = 0
-        self.total_reward: int = 0
-        self.children: Dict[Any, Node] = {}
+    state: Type[State]
+    parent: Node
+    is_terminal: bool = field(init=False)
+    is_fully_expanded: bool = field(init=False)
+    num_visits: int = field(init=False)
+    total_reward: int = field(init=False)
+    children: Dict[Any, Node] = field(init=False)
+
+    def __post_init__(self):
+        self.is_terminal = self.state.is_terminal()
+        self.is_fully_expanded = self.is_terminal
+        self.num_visits = 0
+        self.total_reward = 0
+        self.children = {}
 
 
 class MCTS:
