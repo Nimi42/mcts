@@ -98,9 +98,10 @@ class TicTacToe(State):
 if __name__ == '__main__':
     def run_example():
         state = TicTacToe([[0, 0, 0], [0, 0, 0], [0, 0, 0]], 1, 1)
+        mcts = MCTS(time_limit=300)
         while not state.is_terminal():
-            mcts = MCTS(state, time_limit=300)
-            action = mcts.search()
+
+            action = mcts.search(state)
             state = state.take_action(action)
 
             state.board_turn = state.board_turn * -1
