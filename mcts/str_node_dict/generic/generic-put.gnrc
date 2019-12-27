@@ -1,0 +1,50 @@
+#include "generic-dict.h"
+
+
+static int collision_resolution(struct Dict *dict, struct Bucket *new_bucket) {
+	unsigned int i = FUNC_POSTFIX(hash)(new_bucket->key, dict->size);
+	struct Bucket *old_bucket = dict->items[i];
+
+	if (old_bucket == NULL) {
+		new_bucket->next = NULL;
+		dict->items[i] = new_bucket;
+	}
+	else {
+		while(old_bucket != NULL &&
+		      strcmp(old_bucket->key, new_bucket->key)) {
+			old_bucket = old_bucket->next;
+		}
+
+		if (old_bucket == NULL) {
+			new_bucket->next = dict->items[i];
+			dict->items[i] = new_bucket;
+		}
+		else {
+			FUNC_POSTFIX(free_value)(old_bucket->value);
+			old_bucket->value = new_bucket->value;
+			FUNC_POSTFIX(free_key)(new_bucket->key);
+			free(new_bucket);
+		}
+	}
+
+	return 0;
+}
+
+int FUNC_POSTFIX(dict_put)(struct Dict *dict, KEY_TYPE *key, VALUE_TYPE *value) {
+    if (dict == NULL || key == NULL || value == NULL) {
+              return 1;
+    }
+
+	struct Bucket *bucket;
+
+	bucket = malloc(sizeof(struct Bucket));
+	if (bucket == NULL)
+		return 1;
+
+	bucket->key = key;
+	bucket->value = value;
+
+	collision_resolution(dict, bucket);
+
+	return 0;
+}

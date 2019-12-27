@@ -1,0 +1,27 @@
+#include "generic-dict.h"
+
+void FUNC_POSTFIX(dict_destroy)(struct Dict *hashtable) {
+    if (hashtable == NULL) {
+            return;
+    }
+    struct Bucket *tmp;
+    unsigned int i;
+
+    for (i = 0; i < hashtable->size; ++i) {
+            if (hashtable->items[i] != NULL) {
+                    /* Traverse the list and free the nodes. */
+                    while(hashtable->items[i] != NULL) {
+                        tmp = hashtable->items[i]->next;
+
+                        FUNC_POSTFIX(free_value)(hashtable->items[i]->value);
+                        FUNC_POSTFIX(free_key)(hashtable->items[i]->key);
+                        free(hashtable->items[i]);
+
+                        hashtable->items[i] = tmp;
+                    }
+                    free(hashtable->items[i]);
+            }
+    }
+    free(hashtable->items);
+    free(hashtable);
+}

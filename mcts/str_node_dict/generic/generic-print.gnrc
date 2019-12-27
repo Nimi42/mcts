@@ -1,0 +1,26 @@
+#include "generic-dict.h"
+#include "multiline.h"
+
+int FUNC_POSTFIX(dict_print)(struct Dict *dict) {
+        unsigned int i;
+        struct Bucket *listptr;
+
+        printf("## Dictionary:\n\n");
+
+        for (i = 0; i < dict->size; ++i) {
+                printf("Bucket %d\n", i);
+
+                listptr = dict->items[i];
+
+                while (listptr != NULL) {
+                        // char **str_list = (char *[]){buf1, buf2};
+                        char *bucket_as_str = FUNC_POSTFIX(print_items)(listptr);
+                        ml_append(bucket_as_str, '\n');
+                        free(bucket_as_str);
+                        listptr = listptr->next;
+                }
+                ml_append("NULL\n", '\n');
+                ml_flush('\t');
+        }
+        return 0;
+}

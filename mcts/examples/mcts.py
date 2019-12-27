@@ -103,7 +103,7 @@ class MCTS:
         return node
 
     def _expand(self, node: Node) -> Union[Node, None]:
-        for action in node.state.get_unexplored_actions():
+        for action in node.state:
             if action not in node.children:
                 new_node = Node(node.state.take_action(action), node)
                 node.children[action] = new_node
@@ -114,7 +114,7 @@ class MCTS:
     def _rollout(self, state: Type[State]) -> Any:
         while not state.is_terminal():
             try:
-                action = state.get_best_action()
+                action = state.get_proposed_action()
             except IndexError:
                 raise Exception("Non-terminal state has no possible actions: " + str(state))
             state = state.take_action(action)
@@ -130,9 +130,10 @@ class MCTS:
         best_value = float("-inf")
         best_nodes = []
 
-        for child in node.children.values():
-            node_value = child.total_reward / child.num_visits + exploration_value * math.sqrt(
-                2 * math.log(node.num_visits) / child.num_visits)
+        for a, child in node.children.items():
+            node_value = (child.total_reward / child.num_visits) + (exploration_value * math.sqrt(
+                2 * math.log(node.num_visits) / child.num_visits))
+
             if node_value > best_value:
                 best_value = node_value
                 best_nodes = [child]

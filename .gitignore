@@ -1,1 +1,6 @@
 .idea
+*.sublime*
+*.so
+
+**/build
+**/__pycache__

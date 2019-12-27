@@ -1,0 +1,25 @@
+#include "generic-dict.h"
+
+VALUE_TYPE * FUNC_POSTFIX(dict_get)(struct Dict *dict, KEY_TYPE *key) {
+    if (dict == NULL || key == NULL) {
+            return NULL;
+    }
+
+    char *key_cp;
+    struct Bucket *item;
+    unsigned int i;
+
+    key_cp = strdup(key);
+	i = FUNC_POSTFIX(hash)(key_cp, dict->size);
+	item = dict->items[i];
+
+	while(item != NULL && strcmp(item->key, key)) {
+		item = item->next;
+	}
+
+    free(key_cp);
+	if (item == NULL) 
+		return NULL;
+
+	return item->value;
+}

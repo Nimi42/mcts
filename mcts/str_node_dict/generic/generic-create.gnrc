@@ -1,0 +1,21 @@
+#include "generic-dict.h"
+
+struct Dict * FUNC_POSTFIX(dict_create)(unsigned int size) {
+    if(size < 1) {
+        return 0;
+    }
+    struct Dict *dict;
+
+    dict = malloc(sizeof(struct Dict));
+
+    if (dict == NULL)
+        return NULL;
+
+    dict->size = size;
+    dict->items = (struct Bucket **) calloc(size, sizeof(struct Bucket));
+    
+    if (dict->items == NULL)
+        return NULL;
+
+    return dict;    
+}
